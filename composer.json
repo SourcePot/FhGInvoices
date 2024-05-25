@@ -1,7 +1,7 @@
 {
 	"name":"sourcepot/fhginvoices",
 	"type":"library",
-	"description":"Datapool processor for invoice processing",
+	"description":"Datapool processor for invoice processing (Processor interface)",
 	"keywords":["invoices"],
 	"homepage":"https://datapool.info",
 	"license":"AGPL-3.0-or-later",
