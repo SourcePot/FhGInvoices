@@ -82,7 +82,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     }
 
     private function getInvoicesWidget($callingElement){
-        return $this->oc['SourcePot\Datapool\Foundation\Container']->container('Mapping','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
+        return $this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
     }
 
     private function getInvoicesInfo($callingElement){
@@ -111,7 +111,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         $btnArr['value']='Run';
         $btnArr['key']=array('run');
         $matrix['Commands']['Run']=$btnArr;
-        $arr['html'].=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->table(array('matrix'=>$matrix,'style'=>'clear:left;','hideHeader'=>TRUE,'hideKeys'=>TRUE,'keep-element-content'=>TRUE,'caption'=>'Mapping'));
+        $arr['html'].=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->table(array('matrix'=>$matrix,'style'=>'clear:left;','hideHeader'=>TRUE,'hideKeys'=>TRUE,'keep-element-content'=>TRUE,'caption'=>'Invoices'));
         foreach($result as $caption=>$matrix){
             $arr['html'].=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->table(array('matrix'=>$matrix,'hideHeader'=>FALSE,'hideKeys'=>FALSE,'keep-element-content'=>TRUE,'caption'=>$caption));
         }
@@ -123,7 +123,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function getInvoicesSettings($callingElement){
         $html='';
         if ($this->oc['SourcePot\Datapool\Foundation\Access']->isContentAdmin()){
-            $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Mapping entries settings','generic',$callingElement,array('method'=>'getInvoicesSettingsHtml','classWithNamespace'=>__CLASS__),array());
+            $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices entries settings','generic',$callingElement,array('method'=>'getInvoicesSettingsHtml','classWithNamespace'=>__CLASS__),array());
         }
         return $html;
     }
@@ -157,7 +157,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         // get HTML
         $arr['canvasCallingClass']=$callingElement['Folder'];
         $arr['contentStructure']=$contentStructure;
-        $arr['caption']='Mapping control: Select mapping target and type';
+        $arr['caption']='Invoices control: Select mapping target and type';
         $arr['noBtns']=TRUE;
         $row=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->entry2row($arr,FALSE,TRUE);
         if (empty($arr['selector']['Content'])){$row['trStyle']=array('background-color'=>'#a00');}
@@ -178,7 +178,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         $arr=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2arr(__CLASS__,__FUNCTION__,$callingElement,TRUE);
         $arr['canvasCallingClass']=$callingElement['Folder'];
         $arr['contentStructure']=$contentStructure;
-        $arr['caption']='Mapping rules: Map selected entry values or constants (Source value) to target entry values';
+        $arr['caption']='Invoices rules: Map selected entry values or constants (Source value) to target entry values';
         $html=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->entryListEditor($arr);
         return $html;
     }
@@ -188,7 +188,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         $base=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2settings(__CLASS__,__FUNCTION__,$callingElement,$base);
         // loop through source entries and parse these entries
         $this->oc['SourcePot\Datapool\Foundation\Database']->resetStatistic();
-        $result=array('Mapping statistics'=>array('Entries'=>array('value'=>0),
+        $result=array('Invoices statistics'=>array('Entries'=>array('value'=>0),
                                                   )
                     );
         // loop through entries
