@@ -8,7 +8,7 @@
 */
 declare(strict_types=1);
 
-namespace SourcePot;
+namespace SourcePot\Invoices;
 
 class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     
