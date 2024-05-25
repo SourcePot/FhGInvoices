@@ -37,7 +37,6 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
      *
      * @param array $callingElementSelector Is the selector for the canvas element which called the method 
      * @param string $action Selects the requested process to be run  
-     *
      * @return bool TRUE the requested action exists or FALSE if not
      */
     public function dataProcessor(array $callingElementSelector=array(),string $action='info'){
