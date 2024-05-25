@@ -189,11 +189,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         // loop through source entries and parse these entries
         $this->oc['SourcePot\Datapool\Foundation\Database']->resetStatistic();
         $result=array('Mapping statistics'=>array('Entries'=>array('value'=>0),
-                                                  'Spreadsheet entries'=>array('value'=>0),
-                                                  'Files added to zip'=>array('value'=>0),
-                                                  'Skip rows'=>array('value'=>0),
-                                                  'Output format'=>array('value'=>'Entries'),
-                                                 )
+                                                  )
                     );
         // loop through entries
         $params=current($base['processingparams']);
