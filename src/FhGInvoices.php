@@ -82,7 +82,18 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     }
 
     private function getInvoicesWidget($callingElement){
-        return $this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
+        $S=$this->oc['SourcePot\Datapool\Tools\MiscTools']->getSeparator();
+        $html=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
+        
+        
+        
+        $selector=$callingElement['Content']['Selector'];
+        $settings=array('orderBy'=>'Name','isAsc'=>TRUE,'limit'=>5,'hideUpload'=>TRUE);
+        $settings['columns']=array(array('Column'=>'Content'.$S.'UNYCOM'.$S.'Full','Filter'=>''),array('Column'=>'Content'.$S.'Costs','Filter'=>''));
+        $wrapperSetting=array();
+        $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoice manual check A','entryList',$selector,$settings,$wrapperSetting);
+        
+        return $html;
     }
 
     private function getInvoicesInfo($callingElement){
@@ -118,8 +129,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         $arr['wrapperSettings']=array('style'=>array('width'=>'fit-content'));
         return $arr;
     }
-
-
+    
     private function getInvoicesSettings($callingElement){
         $html='';
         if ($this->oc['SourcePot\Datapool\Foundation\Access']->isContentAdmin()){
@@ -138,12 +148,12 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     }
 
     private function processingParams($callingElement){
-        $contentStructure=array('Target'=>array('method'=>'canvasElementSelect','excontainer'=>TRUE),
-                                'Order by'=>array('method'=>'keySelect','excontainer'=>TRUE,'value'=>'Date','standardColumsOnly'=>TRUE),
-                                'Order'=>array('method'=>'select','excontainer'=>TRUE,'value'=>0,'options'=>array(0=>'Descending',1=>'Ascending')),
+        $contentStructure=array('Target success'=>array('method'=>'canvasElementSelect','excontainer'=>TRUE),
+                                'Target failure'=>array('method'=>'canvasElementSelect','excontainer'=>TRUE),
+                                'General<br/>sample probability '=>array('method'=>'select','excontainer'=>TRUE,'value'=>5,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
+                                'Rules match<br/>sample probability '=>array('method'=>'select','excontainer'=>TRUE,'value'=>100,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
                                 'Save'=>array('method'=>'element','tag'=>'button','element-content'=>'&check;','keep-element-content'=>TRUE,'value'=>'string'),
                                 );
-        $contentStructure['Order by']+=$callingElement['Content']['Selector'];
         // get selctor
         $arr=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2arr(__CLASS__,__FUNCTION__,$callingElement,TRUE);
         $arr['selector']=$this->oc['SourcePot\Datapool\Foundation\Database']->entryByIdCreateIfMissing($arr['selector'],TRUE);
@@ -166,19 +176,17 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     }
     
     private function processingRules($callingElement){
-        $contentStructure=array('Target value or...'=>array('method'=>'element','tag'=>'input','type'=>'text','excontainer'=>TRUE),
-                                '...value selected by'=>array('method'=>'keySelect','excontainer'=>TRUE,'value'=>'useValue','addSourceValueColumn'=>TRUE,'addColumns'=>array('Linked file'=>'Linked file')),
-                                'Target data type'=>array('method'=>'select','excontainer'=>TRUE,'value'=>'string','options'=>$this->oc['SourcePot\Datapool\Tools\MiscTools']->getDataTypes(),'keep-element-content'=>TRUE),
-                                'Target column'=>array('method'=>'keySelect','excontainer'=>TRUE,'value'=>'Name','standardColumsOnly'=>TRUE),
-                                'Target key'=>array('method'=>'element','tag'=>'input','type'=>'text','excontainer'=>TRUE),
-                                'Compare value'=>array('method'=>'element','tag'=>'input','type'=>'text','excontainer'=>TRUE),
+        $contentStructure=array('...'=>array('method'=>'select','excontainer'=>TRUE,'value'=>'||','options'=>array('&&'=>'AND','||'=>'OR'),'keep-element-content'=>TRUE),
+                                'Property'=>array('method'=>'keySelect','excontainer'=>TRUE,'value'=>'Folder','addSourceValueColumn'=>FALSE),
+                                'Condition'=>array('method'=>'select','excontainer'=>TRUE,'value'=>'strpos','options'=>$this->oc['SourcePot\Datapool\Tools\MiscTools']->getConditions(),'keep-element-content'=>TRUE),
+                                'Compare value'=>array('method'=>'element','tag'=>'input','type'=>'text','placeholder'=>'P532132WEDE','excontainer'=>TRUE),
+                                'Random theshold'=>array('method'=>'select','excontainer'=>TRUE,'value'=>50,'options'=>array(100=>'100',100=>'100',90=>'90',80=>'80',70=>'70',60=>'60',50=>'50',40=>'40',30=>'30',20=>'20',10=>'10',5=>'5',2=>'2',1=>'1'),'keep-element-content'=>TRUE),
                                 );
-        $contentStructure['...value selected by']+=$callingElement['Content']['Selector'];
-        $contentStructure['Target column']+=$callingElement['Content']['Selector'];
+        $contentStructure['Property']+=$callingElement['Content']['Selector'];
         $arr=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2arr(__CLASS__,__FUNCTION__,$callingElement,TRUE);
         $arr['canvasCallingClass']=$callingElement['Folder'];
         $arr['contentStructure']=$contentStructure;
-        $arr['caption']='Invoices rules: Map selected entry values or constants (Source value) to target entry values';
+        $arr['caption']='Invoices filter rules: defines entry filter for manual checking';
         $html=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->entryListEditor($arr);
         return $html;
     }
@@ -189,12 +197,18 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         // loop through source entries and parse these entries
         $this->oc['SourcePot\Datapool\Foundation\Database']->resetStatistic();
         $result=array('Invoices statistics'=>array('Entries'=>array('value'=>0),
+                                                   'Skipped entries'=>array('value'=>0),
                                                   )
                     );
         // loop through entries
         $params=current($base['processingparams']);
         foreach($this->oc['SourcePot\Datapool\Foundation\Database']->entryIterator($callingElement['Content']['Selector'],TRUE,'Read') as $sourceEntry){
-            $result=$this->runEntry($base,$sourceEntry,$result,$testRun);
+            if (empty($sourceEntry['Content']['File content'])){
+                $result['Invoices statistics']['Skipped entries']['value']++;
+                continue;
+            }
+            $sourceEntry=$this->addPayments($sourceEntry);
+            $result=$this->processEntry($base,$sourceEntry,$result,$testRun);
         }
         $result['Statistics']=$this->oc['SourcePot\Datapool\Foundation\Database']->statistic2matrix();
         $result['Statistics']['Script time']=array('Value'=>date('Y-m-d H:i:s'));
@@ -202,7 +216,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         return $result;
     }
     
-    private function runEntry($base,$sourceEntry,$result,$testRun){
+    private function processEntry($base,$sourceEntry,$result,$testRun){
         $params=current($base['processingparams']);
         $targetEntry=array();
         $flatSourceEntry=$this->oc['SourcePot\Datapool\Tools\MiscTools']->arr2flat($sourceEntry);
@@ -211,8 +225,6 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         }
         return $result;
     }
-    
-
 
 }
 ?>
