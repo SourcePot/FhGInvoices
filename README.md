@@ -4,7 +4,7 @@ This is a Datapool processor, i.e. the class implements the processor interface.
 <img src="./assets/2024-05-31_schematic.png"/>
 
 # Example
-Each entry containing an invoice is checked aginst rules. This is done when the user clicks the "Process invoices" button. The content admin or admin had configured a random threshold defining how many of the invoices matching rules (typically 100%) and not matching the rules (typically <100%>) should be held back for a manual check. All other invoices are forwarded to the canvas element selected by "Target success".
+Each entry containing an invoice is checked aginst rules. This is done when the user clicks the "Process invoices" button. The content admin or admin had configured a random threshold defining how many of the invoices matching the rules (typically 100%) and not matching the rules (typically <100%) should be held for a manual check. All other invoices are forwarded to the canvas element selected by "Target success",e.g. "Warten" in the image.
 
 <img src="./assets/2024-05-31check.png"/>
 
