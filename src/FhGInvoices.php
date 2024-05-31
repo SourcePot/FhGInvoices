@@ -84,15 +84,11 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function getInvoicesWidget($callingElement){
         $S=$this->oc['SourcePot\Datapool\Tools\MiscTools']->getSeparator();
         $html=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
-        
-        
-        
-        $selector=$callingElement['Content']['Selector'];
-        $settings=array('orderBy'=>'Name','isAsc'=>TRUE,'limit'=>5,'hideUpload'=>TRUE);
+        // manual check
+        $settings=array('orderBy'=>'Name','isAsc'=>TRUE,'limit'=>50,'hideUpload'=>TRUE,'hideApprove'=>FALSE,'hideDecline'=>FALSE,'hideDelete'=>TRUE,'hideRemove'=>TRUE);
         $settings['columns']=array(array('Column'=>'Content'.$S.'UNYCOM'.$S.'Full','Filter'=>''),array('Column'=>'Content'.$S.'Costs','Filter'=>''));
         $wrapperSetting=array();
-        $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoice manual check A','entryList',$selector,$settings,$wrapperSetting);
-        
+        $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoice manual check','entryList',$callingElement['Content']['Selector'],$settings,$wrapperSetting);
         return $html;
     }
 
@@ -116,10 +112,10 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         // build html
         $btnArr=array('tag'=>'input','type'=>'submit','callingClass'=>__CLASS__,'callingFunction'=>__FUNCTION__);
         $matrix=array();
-        $btnArr['value']='Test';
+        $btnArr['value']='Check';
         $btnArr['key']=array('test');
         $matrix['Commands']['Test']=$btnArr;
-        $btnArr['value']='Run';
+        $btnArr['value']='Process invoices';
         $btnArr['key']=array('run');
         $matrix['Commands']['Run']=$btnArr;
         $arr['html'].=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->table(array('matrix'=>$matrix,'style'=>'clear:left;','hideHeader'=>TRUE,'hideKeys'=>TRUE,'keep-element-content'=>TRUE,'caption'=>'Invoices'));
@@ -150,8 +146,8 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function processingParams($callingElement){
         $contentStructure=array('Target success'=>array('method'=>'canvasElementSelect','excontainer'=>TRUE),
                                 'Target failure'=>array('method'=>'canvasElementSelect','excontainer'=>TRUE),
-                                'General<br/>sample probability '=>array('method'=>'select','excontainer'=>TRUE,'value'=>5,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
-                                'Rules match<br/>sample probability '=>array('method'=>'select','excontainer'=>TRUE,'value'=>100,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
+                                'Rules match<br/>sample probability'=>array('method'=>'select','excontainer'=>TRUE,'value'=>100,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
+                                'Rules no match<br/>sample probability'=>array('method'=>'select','excontainer'=>TRUE,'value'=>5,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
                                 'Save'=>array('method'=>'element','tag'=>'button','element-content'=>'&check;','keep-element-content'=>TRUE,'value'=>'string'),
                                 );
         // get selctor
@@ -178,9 +174,9 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function processingRules($callingElement){
         $contentStructure=array('...'=>array('method'=>'select','excontainer'=>TRUE,'value'=>'||','options'=>array('&&'=>'AND','||'=>'OR'),'keep-element-content'=>TRUE),
                                 'Property'=>array('method'=>'keySelect','excontainer'=>TRUE,'value'=>'Folder','addSourceValueColumn'=>FALSE),
+                                'Property data type'=>array('method'=>'select','excontainer'=>TRUE,'value'=>'string','options'=>$this->oc['SourcePot\Datapool\Tools\MiscTools']->getDataTypes(),'keep-element-content'=>TRUE),
                                 'Condition'=>array('method'=>'select','excontainer'=>TRUE,'value'=>'strpos','options'=>$this->oc['SourcePot\Datapool\Tools\MiscTools']->getConditions(),'keep-element-content'=>TRUE),
                                 'Compare value'=>array('method'=>'element','tag'=>'input','type'=>'text','placeholder'=>'P532132WEDE','excontainer'=>TRUE),
-                                'Random theshold'=>array('method'=>'select','excontainer'=>TRUE,'value'=>50,'options'=>array(100=>'100',100=>'100',90=>'90',80=>'80',70=>'70',60=>'60',50=>'50',40=>'40',30=>'30',20=>'20',10=>'10',5=>'5',2=>'2',1=>'1'),'keep-element-content'=>TRUE),
                                 );
         $contentStructure['Property']+=$callingElement['Content']['Selector'];
         $arr=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2arr(__CLASS__,__FUNCTION__,$callingElement,TRUE);
@@ -194,20 +190,24 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function processInvoices($callingElement,$testRun=FALSE){
         $base=array('processingparams'=>array(),'processingrules'=>array());
         $base=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2settings(__CLASS__,__FUNCTION__,$callingElement,$base);
+        // add to base canvas elements->array('EntryId'=>'Name')
+        $canvasElements=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->getCanvasElements($callingElement['Folder']);
+        foreach($canvasElements as $index=>$canvasElement){
+            $base[$canvasElement['EntryId']]=$canvasElement['Content']['Style']['Text'];
+        }
         // loop through source entries and parse these entries
         $this->oc['SourcePot\Datapool\Foundation\Database']->resetStatistic();
-        $result=array('Invoices statistics'=>array('Entries'=>array('value'=>0),
-                                                   'Skipped entries'=>array('value'=>0),
-                                                  )
-                    );
+        $result=array('Invoices'=>array());
         // loop through entries
         $params=current($base['processingparams']);
         foreach($this->oc['SourcePot\Datapool\Foundation\Database']->entryIterator($callingElement['Content']['Selector'],TRUE,'Read') as $sourceEntry){
-            if (empty($sourceEntry['Content']['File content'])){
-                $result['Invoices statistics']['Skipped entries']['value']++;
+            $result['Invoices'][$sourceEntry['Name']]=array('Document missing'=>FALSE,'Property missing'=>FALSE,'Ready for<br/>manual check'=>FALSE,'Rule match'=>FALSE,'User action'=>'none','Random forward'=>'');
+            if (empty($sourceEntry['Params']['File'])){
+                $result['Invoices'][$sourceEntry['Name']]['Document missing']=$this->oc['SourcePot\Datapool\Tools\MiscTools']->bool2element(TRUE);
                 continue;
+            } else {
+                $result['Invoices'][$sourceEntry['Name']]['Document missing']=$this->oc['SourcePot\Datapool\Tools\MiscTools']->bool2element(FALSE);
             }
-            $sourceEntry=$this->addPayments($sourceEntry);
             $result=$this->processEntry($base,$sourceEntry,$result,$testRun);
         }
         $result['Statistics']=$this->oc['SourcePot\Datapool\Foundation\Database']->statistic2matrix();
@@ -218,13 +218,70 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     
     private function processEntry($base,$sourceEntry,$result,$testRun){
         $params=current($base['processingparams']);
-        $targetEntry=array();
+        // check for added manual action
+        $targetEntryId=FALSE;
+        if (isset($sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action'])){
+            if ($sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action']==='approve'){
+                // invoice approved
+                $targetEntryId=$params['Content']['Target success'];
+            } else if ($sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action']==='decline'){
+                // declined invoice
+                $targetEntryId=$params['Content']['Target failure'];
+            } else {
+                $this->oc['logger']->log('notice','User action "{action}" did not match "approve" or "decline"',array('action'=>$sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action']));
+            }
+            if ($targetEntryId){
+                $result['Invoices'][$sourceEntry['Name']]['User action']='<b>'.$sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action'].'</b>';
+                $targetEntry=$this->oc['SourcePot\Datapool\Foundation\Database']->moveEntryOverwriteTarget($sourceEntry,$base['entryTemplates'][$targetEntryId],TRUE,$testRun);
+            }
+        }
+        // check if rules were already applied
+        $rulesWereAppliedAlready=$this->oc['SourcePot\Datapool\Tools\MiscTools']->wasTouchedByClass($sourceEntry,__CLASS__,$testRun);
+        $result['Invoices'][$sourceEntry['Name']]['Ready for<br/>manual check']=$this->oc['SourcePot\Datapool\Tools\MiscTools']->bool2element($rulesWereAppliedAlready);
+        // check rule match
+        $ruleMatch=NULL;
         $flatSourceEntry=$this->oc['SourcePot\Datapool\Tools\MiscTools']->arr2flat($sourceEntry);
         foreach($base['processingrules'] as $ruleIndex=>$rule){
-        
+            $rule['Content']['ruleIndex']=$this->oc['SourcePot\Datapool\Foundation\Database']->getOrderedListIndexFromEntryId($ruleIndex);
+            if (!isset($flatSourceEntry[$rule['Content']['Property']])){
+                $result['Invoices'][$sourceEntry['Name']]['Property missing']=$this->oc['SourcePot\Datapool\Tools\MiscTools']->bool2element(TRUE);
+                continue;
+            } else {
+                $result['Invoices'][$sourceEntry['Name']]['Property missing']=$this->oc['SourcePot\Datapool\Tools\MiscTools']->bool2element(FALSE);
+            }
+            $property=$this->oc['SourcePot\Datapool\Tools\MiscTools']->convert($flatSourceEntry[$rule['Content']['Property']],$rule['Content']['Property data type']);
+            $conditionMet=$this->oc['SourcePot\Datapool\Tools\MiscTools']->isTrue($property,$rule['Content']['Compare value'],$rule['Content']['Condition']);
+            if ($ruleMatch===NULL){
+                $ruleMatch=$conditionMet;
+            } else if ($rule['Content']['...']==='&&'){
+                $ruleMatch=$ruleMatch && $conditionMet;
+            } else if ($rule['Content']['...']==='||'){
+                $ruleMatch=$ruleMatch || $conditionMet;
+            } else {
+                $this->oc['logger']->log('notice','Rule "{ruleIndex}" is invalid, key "... = {...}" is undefined',$rule['Content']);
+            }
+        }
+        $result['Invoices'][$sourceEntry['Name']]['Rule match']=$this->oc['SourcePot\Datapool\Tools\MiscTools']->bool2element($ruleMatch);
+        if ($ruleMatch){
+            if (mt_rand(0,99)<$params['Content']['Rules match<br/>sample probability'] || $rulesWereAppliedAlready){
+                // manual check
+            } else {
+                // forward to success target
+                $targetEntryId=$params['Content']['Target success'];
+                $targetEntry=$this->oc['SourcePot\Datapool\Foundation\Database']->moveEntryOverwriteTarget($sourceEntry,$base['entryTemplates'][$targetEntryId],TRUE,$testRun);
+                $result['Invoices'][$sourceEntry['Name']]['Random forward']=$base[$targetEntryId];
+            }
+        } else {
+            if (mt_rand(0,99)<$params['Content']['Rules no match<br/>sample probability'] || $rulesWereAppliedAlready){
+                // manual check
+            } else {
+                // forward to success target
+                $targetEntryId=$params['Content']['Target success'];
+                $targetEntry=$this->oc['SourcePot\Datapool\Foundation\Database']->moveEntryOverwriteTarget($sourceEntry,$base['entryTemplates'][$targetEntryId],TRUE,$testRun);
+                $result['Invoices'][$sourceEntry['Name']]['Random forward']=$base[$targetEntryId];
+            }
         }
         return $result;
     }
-
 }
 ?>
