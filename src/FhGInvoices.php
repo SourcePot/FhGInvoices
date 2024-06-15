@@ -83,12 +83,14 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
 
     private function getInvoicesWidget($callingElement){
         $S=$this->oc['SourcePot\Datapool\Tools\MiscTools']->getSeparator();
-        $html=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
+        $html='';
         // manual check
         $settings=array('orderBy'=>'Name','isAsc'=>TRUE,'limit'=>2,'hideUpload'=>TRUE,'hideApprove'=>FALSE,'hideDecline'=>FALSE,'hideDelete'=>TRUE,'hideRemove'=>TRUE);
         $settings['columns']=array(array('Column'=>'Content'.$S.'UNYCOM'.$S.'Full','Filter'=>''),array('Column'=>'Content'.$S.'Costs','Filter'=>''));
         $wrapperSetting=array();
         $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoice manual check','entryList',$callingElement['Content']['Selector'],$settings,$wrapperSetting);
+        // invoice widget
+        $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
         return $html;
     }
 
