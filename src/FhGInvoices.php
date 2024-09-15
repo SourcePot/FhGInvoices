@@ -219,19 +219,20 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function processEntry($base,$sourceEntry,$result,$testRun){
         $params=current($base['processingparams']);
         // check for added manual action
+        $currentUserEntryId=$this->oc['SourcePot\Datapool\Root']->getCurrentUserEntryId();
         $targetEntryId=FALSE;
-        if (isset($sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action'])){
-            if ($sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action']==='approve'){
+        if (isset($sourceEntry['Params']['User'][$currentUserEntryId]['action'])){
+            if ($sourceEntry['Params']['User'][$currentUserEntryId]['action']==='approve'){
                 // invoice approved
                 $targetEntryId=$params['Content']['Target success'];
-            } else if ($sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action']==='decline'){
+            } else if ($sourceEntry['Params']['User'][$currentUserEntryId]['action']==='decline'){
                 // declined invoice
                 $targetEntryId=$params['Content']['Target failure'];
             } else {
-                $this->oc['logger']->log('notice','User action "{action}" did not match "approve" or "decline"',array('action'=>$sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action']));
+                $this->oc['logger']->log('notice','User action "{action}" did not match "approve" or "decline"',array('action'=>$sourceEntry['Params']['User'][$currentUserEntryId]['action']));
             }
             if ($targetEntryId){
-                $result['Invoices'][$sourceEntry['Name']]['User action']='<b>'.$sourceEntry['Params']['User'][$_SESSION['currentUser']['EntryId']]['action'].'</b>';
+                $result['Invoices'][$sourceEntry['Name']]['User action']='<b>'.$sourceEntry['Params']['User'][$currentUserEntryId]['action'].'</b>';
                 $targetEntry=$this->oc['SourcePot\Datapool\Foundation\Database']->moveEntryOverwriteTarget($sourceEntry,$base['entryTemplates'][$targetEntryId],TRUE,$testRun);
             }
         }
