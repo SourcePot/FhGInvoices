@@ -148,7 +148,6 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
                                 'Target failure'=>array('method'=>'canvasElementSelect','excontainer'=>TRUE),
                                 'Rules match<br/>sample probability'=>array('method'=>'select','excontainer'=>TRUE,'value'=>100,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
                                 'Rules no match<br/>sample probability'=>array('method'=>'select','excontainer'=>TRUE,'value'=>5,'options'=>array(100=>'100%',90=>'90%',80=>'80%',70=>'70%',60=>'60%',50=>'50%',40=>'40%',30=>'30%',20=>'20%',10=>'10%',5=>'5%',2=>'2%',1=>'1%'),'keep-element-content'=>TRUE),
-                                'Save'=>array('method'=>'element','tag'=>'button','element-content'=>'&check;','keep-element-content'=>TRUE,'value'=>'string'),
                                 );
         // get selctor
         $arr=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2arr(__CLASS__,__FUNCTION__,$callingElement,TRUE);
