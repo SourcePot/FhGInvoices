@@ -86,7 +86,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         $html=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
         // manual check
         $settings=array('orderBy'=>'Name','isAsc'=>TRUE,'limit'=>50,'hideUpload'=>TRUE,'hideApprove'=>FALSE,'hideDecline'=>FALSE,'hideDelete'=>TRUE,'hideRemove'=>TRUE);
-        $settings['columns']=array(array('Column'=>'Content'.$S.'UNYCOM'.$S.'Full','Filter'=>''),array('Column'=>'Content'.$S.'Costs','Filter'=>''));
+        $settings['columns']=array(array('Column'=>'UNYCOM'.$S.'Full','Filter'=>''),array('Column'=>'Costs','Filter'=>''));
         $wrapperSetting=array();
         $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoice manual check','entryList',$callingElement['Content']['Selector'],$settings,$wrapperSetting);
         return $html;
