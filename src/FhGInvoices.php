@@ -39,7 +39,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
      * @param string $action Selects the requested process to be run  
      * @return bool TRUE the requested action exists or FALSE if not
      */
-    public function dataProcessor(array $callingElementSelector=array(),string $action='info'){
+    public function dataProcessor(array $callingElementSelector=[],string $action='info'){
         $callingElement=$this->oc['SourcePot\Datapool\Foundation\Database']->entryById($callingElementSelector,TRUE);
         switch($action){
             case 'run':
@@ -83,17 +83,17 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
 
     private function getInvoicesWidget($callingElement){
         $S=$this->oc['SourcePot\Datapool\Tools\MiscTools']->getSeparator();
-        $html=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),array());
+        $html=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices','generic',$callingElement,array('method'=>'getInvoicesWidgetHtml','classWithNamespace'=>__CLASS__),[]);
         // manual check
         $settings=array('orderBy'=>'Name','isAsc'=>TRUE,'limit'=>50,'hideUpload'=>TRUE,'hideApprove'=>FALSE,'hideDecline'=>FALSE,'hideDelete'=>TRUE,'hideRemove'=>TRUE);
         $settings['columns']=array(array('Column'=>'UNYCOM'.$S.'Full','Filter'=>''),array('Column'=>'Costs (left)','Filter'=>''));
-        $wrapperSetting=array();
+        $wrapperSetting=[];
         $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoice manual check','entryList',$callingElement['Content']['Selector'],$settings,$wrapperSetting);
         return $html;
     }
 
     private function getInvoicesInfo($callingElement){
-        $matrix=array();
+        $matrix=[];
         $matrix['']['value']='';
         $html=$this->oc['SourcePot\Datapool\Tools\HTMLbuilder']->table(array('matrix'=>$matrix,'hideHeader'=>TRUE,'hideKeys'=>FALSE,'keep-element-content'=>TRUE,'caption'=>'Info'));
         return $html;
@@ -102,7 +102,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     public function getInvoicesWidgetHtml($arr){
         if (!isset($arr['html'])){$arr['html']='';}
         // command processing
-        $result=array();
+        $result=[];
         $formData=$this->oc['SourcePot\Datapool\Foundation\Element']->formProcessing(__CLASS__,__FUNCTION__);
         if (isset($formData['cmd']['run'])){
             $result=$this->processInvoices($arr['selector'],FALSE);
@@ -111,7 +111,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         }
         // build html
         $btnArr=array('tag'=>'input','type'=>'submit','callingClass'=>__CLASS__,'callingFunction'=>__FUNCTION__);
-        $matrix=array();
+        $matrix=[];
         $btnArr['value']='Check';
         $btnArr['key']=array('test');
         $matrix['Commands']['Test']=$btnArr;
@@ -132,7 +132,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     private function getInvoicesSettings($callingElement){
         $html='';
         if ($this->oc['SourcePot\Datapool\Foundation\Access']->isContentAdmin()){
-            $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices entries settings','generic',$callingElement,array('method'=>'getInvoicesSettingsHtml','classWithNamespace'=>__CLASS__),array());
+            $html.=$this->oc['SourcePot\Datapool\Foundation\Container']->container('Invoices entries settings','generic',$callingElement,array('method'=>'getInvoicesSettingsHtml','classWithNamespace'=>__CLASS__),[]);
         }
         return $html;
     }
@@ -190,7 +190,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
     }
 
     private function processInvoices($callingElement,$testRun=FALSE){
-        $base=array('processingparams'=>array(),'processingrules'=>array());
+        $base=array('processingparams'=>[],'processingrules'=>[]);
         $base=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->callingElement2settings(__CLASS__,__FUNCTION__,$callingElement,$base);
         // add to base canvas elements->array('EntryId'=>'Name')
         $canvasElements=$this->oc['SourcePot\Datapool\Foundation\DataExplorer']->getCanvasElements($callingElement['Folder']);
@@ -199,7 +199,7 @@ class FhGInvoices implements \SourcePot\Datapool\Interfaces\Processor{
         }
         // loop through source entries and parse these entries
         $this->oc['SourcePot\Datapool\Foundation\Database']->resetStatistic();
-        $result=array('Invoices'=>array());
+        $result=array('Invoices'=>[]);
         // loop through entries
         $params=current($base['processingparams']);
         foreach($this->oc['SourcePot\Datapool\Foundation\Database']->entryIterator($callingElement['Content']['Selector'],TRUE,'Read') as $sourceEntry){
